@@ -10,6 +10,7 @@ namespace MaiChartSafer
     {
         static void Main(string[] args)
         {
+            Singleton<SlidePath>.Instance.Foo();
         }
     }
 }
