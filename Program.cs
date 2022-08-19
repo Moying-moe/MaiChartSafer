@@ -10,7 +10,14 @@ namespace MaiChartSafer
     {
         static void Main(string[] args)
         {
-            Singleton<SlidePath>.Instance.Foo();
+            SlideData slide = new SlideData("4-8");
+            List<SlideOperation> slideOperations = Singleton<SlideTouchTime>.Instance.GetOperationList(slide);
+            foreach (SlideOperation operation in slideOperations)
+            {
+                Console.WriteLine(operation.ToString());
+            }
+
+            Console.ReadKey();
         }
     }
 }

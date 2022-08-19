@@ -19,18 +19,20 @@ namespace MaiChartSafer
     {
         private Dictionary<SlideOrigin, List<TouchArea>> _slidePath = new Dictionary<SlideOrigin, List<TouchArea>>();
 
-        /// <summary>
-        /// 初始化
-        /// 从SlidePath.json中读取数据
-        /// </summary>
         public SlidePath()
         {
             LoadFromFile("./SlidePath.json");
         }
 
-        public void Foo()
+        public List<TouchArea> GetPath(SlideData slide)
         {
-
+            SlideOrigin sOrigin = slide.GetOrigin();
+            List<TouchArea> originArea = _slidePath[sOrigin];
+            for (int i = 0; i < originArea.Count; i++)
+            {
+                originArea[i] = originArea[i].Rotate((short)(slide.StartButton - 1));
+            }
+            return originArea;
         }
 
         /// <summary>

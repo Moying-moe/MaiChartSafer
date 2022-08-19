@@ -43,6 +43,11 @@ namespace MaiChartSafer
             return dict;
         }
 
+        /// <summary>
+        /// 从判定区字符串初始化判定区
+        /// </summary>
+        /// <param name="_str">判定区字符串</param>
+        /// <returns>判定区枚举值</returns>
         public static TouchArea FromString(string _str)
         {
             if (_stringToEnumDict.ContainsKey(_str))
@@ -51,6 +56,75 @@ namespace MaiChartSafer
             }
             Debug.Print(_str);
             return TouchArea.Invalid;
+        }
+
+        public static bool IsA(this TouchArea self)
+        {
+            return self >= TouchArea.A1 && self <= TouchArea.A8;
+        }
+
+        public static bool IsB(this TouchArea self)
+        {
+            return self >= TouchArea.B1 && self <= TouchArea.B8;
+        }
+
+        /// <summary>
+        /// 获得判定区的键位
+        /// </summary>
+        /// <param name="self">判定区</param>
+        /// <returns>判定区对应的键位，如A1对应1</returns>
+        public static short GetButton(this TouchArea self)
+        {
+            if (self.IsA())
+            {
+                return (short)(self - TouchArea.A1 + 1);
+            }
+            else if (self.IsB())
+            {
+                return (short)(self - TouchArea.B1 + 1);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// 根据判定区类型和键位 返回判定区
+        /// </summary>
+        /// <param name="areaBase">如果是A区则传入TouchArea.A1，B区则传入TouchArea.B1</param>
+        /// <param name="button">判定区对应的键位</param>
+        /// <returns>对应的判定区</returns>
+        public static TouchArea ButtonToArea(TouchArea areaBase, short button)
+        {
+            return areaBase + button - 1;
+        }
+
+        /// <summary>
+        /// 将对象判定区旋转后返回
+        /// </summary>
+        /// <param name="self">原判定区</param>
+        /// <param name="delta">旋转角，范围为-8到8</param>
+        /// <returns>新判定区</returns>
+        public static TouchArea Rotate(this TouchArea self, short delta)
+        {
+            if (self == TouchArea.C)
+            {
+                return TouchArea.C;
+            }
+            else
+            {
+                short newButton = (short)(self.GetButton() + delta);
+                newButton = (short)((newButton + 7) % 8 + 1);
+                if (self.IsA())
+                {
+                    return TouchAreaEnum.ButtonToArea(TouchArea.A1, newButton);
+                }
+                else
+                {
+                    return TouchAreaEnum.ButtonToArea(TouchArea.B1, newButton);
+                }
+            }
         }
     }
 }

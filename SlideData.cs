@@ -10,15 +10,15 @@
             _slideType = SlideTypeEnum.SlideTypeConvert(slideContent);
             switch (_slideType)
             {
-                // 处理4种终点不在slideContent[1]的情况
+                // 处理4种终点不在slideContent[2]的情况
                 case SlideType.Curve_L:
                 case SlideType.Curve_R:
                 case SlideType.Turn_L:
                 case SlideType.Turn_R:
-                    _endButton = (short)(slideContent[2] - '0');
+                    _endButton = (short)(slideContent[3] - '0');
                     break;
                 default:
-                    _endButton = (short)(slideContent[1] - '0');
+                    _endButton = (short)(slideContent[2] - '0');
                     break;
             }
         }
@@ -45,7 +45,8 @@
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            string slideString = ToString();
+            return slideString.GetHashCode();
         }
 
         public override string ToString()
@@ -71,15 +72,15 @@
             _startButton = (short)(slideContent[0] - '0');
             switch (_slideType)
             {
-                // 处理4种终点不在slideContent[1]的情况
+                // 处理4种终点不在slideContent[2]的情况
                 case SlideType.Curve_L:
                 case SlideType.Curve_R:
                 case SlideType.Turn_L:
                 case SlideType.Turn_R:
-                    _endButton = (short)(slideContent[2] - '0');
+                    _endButton = (short)(slideContent[3] - '0');
                     break;
                 default:
-                    _endButton = (short)(slideContent[1] - '0');
+                    _endButton = (short)(slideContent[2] - '0');
                     break;
             }
         }
@@ -109,13 +110,15 @@
 
         public override int GetHashCode()
         {
-            return base.GetHashCode();
+            string slideString = ToString();
+            return slideString.GetHashCode();
         }
 
         public override string ToString()
         {
             return string.Concat(
-                "[SlideOrigin 1",
+                "[SlideData ",
+                _startButton.ToString(),
                 _slideType,
                 _endButton.ToString(),
                 "]"
@@ -159,13 +162,13 @@
             {
                 slideTypeChar = tempTypeChar;
                 startButton = slideContent[0] - '0';
-                endButton = slideContent[2] - '0';
+                endButton = slideContent[3] - '0';
             }
             else
             {
                 slideTypeChar = slideContent.Substring(1, 1);
                 startButton = slideContent[0] - '0';
-                endButton = slideContent[1] - '0';
+                endButton = slideContent[2] - '0';
             }
 
             switch (slideTypeChar)
