@@ -22,23 +22,10 @@ namespace MaiChartSafer
         private static Dictionary<string, TouchArea> InitDict()
         {
             Dictionary<string, TouchArea> dict = new Dictionary<string, TouchArea>();
-            dict.Add("A1", TouchArea.A1);
-            dict.Add("A2", TouchArea.A2);
-            dict.Add("A3", TouchArea.A3);
-            dict.Add("A4", TouchArea.A4);
-            dict.Add("A5", TouchArea.A5);
-            dict.Add("A6", TouchArea.A6);
-            dict.Add("A7", TouchArea.A7);
-            dict.Add("A8", TouchArea.A8);
-            dict.Add("B1", TouchArea.B1);
-            dict.Add("B2", TouchArea.B2);
-            dict.Add("B3", TouchArea.B3);
-            dict.Add("B4", TouchArea.B4);
-            dict.Add("B5", TouchArea.B5);
-            dict.Add("B6", TouchArea.B6);
-            dict.Add("B7", TouchArea.B7);
-            dict.Add("B8", TouchArea.B8);
-            dict.Add("C", TouchArea.C);
+            for (TouchArea area = TouchArea.A1; area < TouchArea.End; area++) 
+            {
+                dict.Add(area.ToString(), area);
+            }
 
             return dict;
         }
@@ -95,7 +82,7 @@ namespace MaiChartSafer
         /// <param name="areaBase">如果是A区则传入TouchArea.A1，B区则传入TouchArea.B1</param>
         /// <param name="button">判定区对应的键位</param>
         /// <returns>对应的判定区</returns>
-        public static TouchArea ButtonToArea(TouchArea areaBase, short button)
+        public static TouchArea FromButton(TouchArea areaBase, short button)
         {
             return areaBase + button - 1;
         }
@@ -118,11 +105,11 @@ namespace MaiChartSafer
                 newButton = (short)((newButton + 7) % 8 + 1);
                 if (self.IsA())
                 {
-                    return TouchAreaEnum.ButtonToArea(TouchArea.A1, newButton);
+                    return TouchAreaEnum.FromButton(TouchArea.A1, newButton);
                 }
                 else
                 {
-                    return TouchAreaEnum.ButtonToArea(TouchArea.B1, newButton);
+                    return TouchAreaEnum.FromButton(TouchArea.B1, newButton);
                 }
             }
         }

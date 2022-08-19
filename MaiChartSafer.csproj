@@ -46,15 +46,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ButtonMonitor.cs" />
     <Compile Include="DataStruct.cs" />
     <Compile Include="JudgeCheckerBase.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Simulator.cs" />
     <Compile Include="Singleton.cs" />
     <Compile Include="SlideData.cs" />
     <Compile Include="SlidePath.cs" />
+    <Compile Include="SlideTask.cs" />
     <Compile Include="SlideTouchTime.cs" />
+    <Compile Include="TouchAreaMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
