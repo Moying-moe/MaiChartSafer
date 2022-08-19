@@ -75,20 +75,23 @@ namespace MaiChartSafer
                     {
                         case 0:
                             // Tap
-                            AddTap(Tools.GetNoteInfo(noteGroup, note), note.Value<short>("startPosition"), groupTime);
+                            AddTap(Tools.GetNoteInfo(noteGroup, note), noteGroup.Value<float>("time"), note.Value<short>("startPosition"), groupTime);
                             break;
                         case 1:
                             // Slide-Tap
-                            AddTap("*"+Tools.GetNoteInfo(noteGroup, note), note.Value<short>("startPosition"), groupTime);
+                            if (!note.Value<bool>("isSlideNoHead"))
+                            {
+                                AddTap("*" + Tools.GetNoteInfo(noteGroup, note), noteGroup.Value<float>("time"), note.Value<short>("startPosition"), groupTime);
+                            }
                             // Slide
                             SlideData slide = new SlideData(
                                 SlideData.SlideContentFromFullSlideText(note.Value<string>("noteContent")),
                                 groupTime, note.Value<float>("slideStartTime"), note.Value<float>("slideTime"));
-                            AddSlide(Tools.GetNoteInfo(noteGroup, note), slide);
+                            AddSlide(Tools.GetNoteInfo(noteGroup, note), noteGroup.Value<float>("time"), slide);
                             break;
                         case 2:
                             // Hold
-                            AddHold(Tools.GetNoteInfo(noteGroup, note), note.Value<short>("startPosition"), groupTime, note.Value<float>("holdTime"));
+                            AddHold(Tools.GetNoteInfo(noteGroup, note), noteGroup.Value<float>("time"), note.Value<short>("startPosition"), groupTime, note.Value<float>("holdTime"));
                             break;
                         default:
                             // Invalid
@@ -247,39 +250,83 @@ namespace MaiChartSafer
                 throw new Exception("Please simulate the chart first.");
             }
 
-            JudgeResult resultFast = JudgeResult.FastGood;
-            JudgeResult resultLate = JudgeResult.Miss;
-            if (level == ResultLevel.Critical)
-            {
-                resultFast = JudgeResult.Critical;
-                resultLate = JudgeResult.Critical;
-            }
-            else if (level == ResultLevel.Perfect)
-            {
-                resultFast = JudgeResult.FastPerfect;
-                resultLate = JudgeResult.LatePerfect;
-            }
-            else
-            {
-                resultFast = JudgeResult.None;
-                resultLate = JudgeResult.None;
-            }
-
-            string result = "";
+            // 整理排序checkers
+            List<JudgeCheckerBase> checkerList = new List<JudgeCheckerBase>();
             for (short button = 0; button <= 8; button++)
             {
-                foreach (JudgeCheckerBase checker in _judgeCheckers[button])
+                checkerList.AddRange(_judgeCheckers[button]);
+            }
+
+            checkerList.Sort((JudgeCheckerBase a, JudgeCheckerBase b) => {
+                if (a.SortTime > b.SortTime)
+                {
+                    return 1;
+                }
+                else if (a.SortTime < b.SortTime)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return 0;
+                }
+            });
+
+
+            string result = "";
+
+            if (level != ResultLevel.NotZero)
+            {
+                JudgeResult resultFast = JudgeResult.FastGood;
+                JudgeResult resultLate = JudgeResult.Miss;
+                if (level == ResultLevel.Critical)
+                {
+                    resultFast = JudgeResult.Critical;
+                    resultLate = JudgeResult.Critical;
+                }
+                else if (level == ResultLevel.Perfect)
+                {
+                    resultFast = JudgeResult.FastPerfect;
+                    resultLate = JudgeResult.LatePerfect;
+                }
+                else if (level == ResultLevel.All)
+                {
+                    resultFast = JudgeResult.None;
+                    resultLate = JudgeResult.None;
+                }
+
+                foreach (JudgeCheckerBase checker in checkerList)
                 {
                     if (!(checker.JudgeResult >= resultFast && checker.JudgeResult <= resultLate))
                     {
                         result += string.Concat(
+                            Tools.TimeFormat(checker.SortTime), " ",
                             checker.NoteInfo,
                             " got ",
                             checker.JudgeResult,
+                            string.Format(" ({0:0.000}s)", checker.JudgeDeltaTime),
                             "\n");
                     }
                 }
             }
+            else
+            {
+                // 误差时间不为0的都输出
+                foreach (JudgeCheckerBase checker in checkerList)
+                {
+                    if (Math.Abs(checker.JudgeDeltaTime) > 0.01667)
+                    {
+                        result += string.Concat(
+                            Tools.TimeFormat(checker.SortTime), " ",
+                            checker.NoteInfo,
+                            " got ",
+                            checker.JudgeResult,
+                            string.Format(" ({0:0.000}s)", checker.JudgeDeltaTime),
+                            "\n");
+                    }
+                }
+            }
+            
 
             return result;
         }
@@ -293,30 +340,30 @@ namespace MaiChartSafer
             _operations[_time].Add(_op);
         }
 
-        public void AddTap(string noteInfo, short button, float judgeTime)
+        public void AddTap(string noteInfo, float sortTime, short button, float judgeTime)
         {
             // 注册Tap判定
-            _judgeCheckers[button].Add(new TapJudgeChecker(noteInfo, judgeTime));
+            _judgeCheckers[button].Add(new TapJudgeChecker(noteInfo, sortTime, judgeTime));
             // 添加操作
             TouchArea area = TouchAreaEnum.FromButton(TouchArea.A1, button);
             AddOperation(judgeTime, new TouchOperation(area, AreaMethod.In));
             AddOperation(judgeTime, new TouchOperation(area, AreaMethod.Out));
         }
 
-        public void AddHold(string noteInfo, short button, float judgeTime, float holdTime)
+        public void AddHold(string noteInfo, float sortTime, short button, float judgeTime, float holdTime)
         {
             // 注册Hold操作
-            _judgeCheckers[button].Add(new HoldJudgeChecker(noteInfo, judgeTime, holdTime));
+            _judgeCheckers[button].Add(new HoldJudgeChecker(noteInfo, sortTime, judgeTime, holdTime));
             // 添加操作
             TouchArea area = TouchAreaEnum.FromButton(TouchArea.A1, button);
             AddOperation(judgeTime, new TouchOperation(area, AreaMethod.In));
             AddOperation(judgeTime + holdTime, new TouchOperation(area, AreaMethod.Out));
         }
 
-        public void AddSlide(string noteInfo, SlideData slide)
+        public void AddSlide(string noteInfo, float sortTime, SlideData slide)
         {
             // 注册Slide操作
-            SlideJudgeChecker slideJudgeChecker = new SlideJudgeChecker(noteInfo, slide);
+            SlideJudgeChecker slideJudgeChecker = new SlideJudgeChecker(noteInfo, sortTime, slide);
             _judgeCheckers[0].Add(slideJudgeChecker);
             // 注册SlideTask
             _slideTasks.Add(new SlideTask(slide, this, slideJudgeChecker));
@@ -353,6 +400,7 @@ namespace MaiChartSafer
     {
         Critical, // 非Critical Perfect都会被输出
         Perfect, // 非Perfect都会被输出
+        NotZero, // 误差时间不是0的都会被输出
         All, // 所有判定都会输出
     }
 }

@@ -26,7 +26,6 @@ namespace MaiChartSafer
             }
 
             return string.Concat(
-                Tools.TimeFormat(noteGroup.Value<float>("time")), " ",
                 noteContent, " ",
                 string.Format("({0}L,{1}c)", codeLine, codeColumn));
         }

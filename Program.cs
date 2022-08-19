@@ -11,11 +11,12 @@ namespace MaiChartSafer
         static void Main(string[] args)
         {
             Singleton<Simulator>.Instance.Init();
-            Singleton<Simulator>.Instance.LoadChartFromMajdata(@"D:\maimaifanmade\测试\majdata.json");
+            //Singleton<Simulator>.Instance.LoadChartFromMajdata(@"D:\maimaifanmade\测试" + @"\majdata.json");
+            Singleton<Simulator>.Instance.LoadChartFromMajdata(@"D:\maimaifanmade\新谱\S.A.T.E.L.L.I.T.E" + @"\majdata.json");
 
             Singleton<Simulator>.Instance.Simulate();
 
-            Console.WriteLine(Singleton<Simulator>.Instance.GetSimulateResult(ResultLevel.Critical));
+            Console.WriteLine(Singleton<Simulator>.Instance.GetSimulateResult(ResultLevel.NotZero));
 
             Console.WriteLine("Wait Any Key to Exit.");
             Console.ReadKey();

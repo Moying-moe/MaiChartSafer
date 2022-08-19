@@ -11,14 +11,17 @@ namespace MaiChartSafer
         protected float _judgeTime;
         protected bool _hasJudged;
         protected JudgeResult _judgeResult;
+        protected float _judgeDeltaTime;
 
         protected string _noteInfo;
+        protected float _sortTime;
 
-        public JudgeCheckerBase(string noteInfo)
+        public JudgeCheckerBase(string noteInfo, float sortTime)
         {
             _hasJudged = false;
             _judgeResult = JudgeResult.None;
             _noteInfo = noteInfo;
+            _sortTime = sortTime;
         }
 
         /// <summary>
@@ -31,6 +34,8 @@ namespace MaiChartSafer
         internal JudgeResult JudgeResult { get => _judgeResult; }
         public float JudgeTime { get => _judgeTime; }
         public string NoteInfo { get => _noteInfo; }
+        public float JudgeDeltaTime { get => _judgeDeltaTime; }
+        public float SortTime { get => _sortTime;  }
 
         /// <summary>
         /// 是否过早需要忽略 即note是否还没进入判定区
@@ -60,7 +65,7 @@ namespace MaiChartSafer
     /// </summary>
     class TapJudgeChecker : JudgeCheckerBase
     {
-        public TapJudgeChecker(string noteInfo, float judgeTime) : base(noteInfo)
+        public TapJudgeChecker(string noteInfo, float sortTime, float judgeTime) : base(noteInfo, sortTime)
         {
             _judgeTime = judgeTime;
         }
@@ -123,6 +128,7 @@ namespace MaiChartSafer
                 return false;
             }
             this._hasJudged = true;
+            this._judgeDeltaTime = deltaTime;
             return true;
         }
     }
@@ -141,7 +147,7 @@ namespace MaiChartSafer
 
         public bool HasHeadJudged { get => _hasHeadJudged; set => _hasHeadJudged = value; }
 
-        public HoldJudgeChecker(string noteInfo, float judgeTime, float holdTime) : base(noteInfo)
+        public HoldJudgeChecker(string noteInfo, float sortTime, float judgeTime, float holdTime) : base(noteInfo, sortTime)
         {
             _judgeTime = judgeTime;
             _holdTime = holdTime;
@@ -220,6 +226,7 @@ namespace MaiChartSafer
                 return false;
             }
             this._hasHeadJudged = true;
+            this._judgeDeltaTime = deltaTime;
             return true;
         }
 
@@ -229,7 +236,7 @@ namespace MaiChartSafer
         /// <param name="curTime">当前模拟时间</param>
         public bool JudgeTail(float curTime)
         {
-            float deltaTime = curTime - _judgeTime;
+            float deltaTime = curTime - _judgeTime - _holdTime;
 
             // 如果还未进入范围 已经判定过 或者还未进行头部判定 则不进行Release判定
             if (IsNoteEarlyIgnored(curTime) || HasJudged || !HasHeadJudged)
@@ -280,6 +287,10 @@ namespace MaiChartSafer
             // 最后根据头判和尾判 选择较差的一个判定
             this._judgeResult = JudgeResultEnum.GetMin(this._judgeResult, this._headJudgeResult);
             this._hasJudged = true;
+            if (this._judgeResult != this._headJudgeResult)
+            {
+                this._judgeDeltaTime = deltaTime;
+            }
             return true;
         }
     }
@@ -294,7 +305,7 @@ namespace MaiChartSafer
     {
         private float _startJudgeTime;
 
-        public SlideJudgeChecker(string noteInfo, SlideData slide) : base(noteInfo)
+        public SlideJudgeChecker(string noteInfo, float sortTime, SlideData slide) : base(noteInfo, sortTime)
         {
             _judgeTime = slide.LastAreaTime;
             _startJudgeTime = slide.StartTime;
@@ -362,6 +373,7 @@ namespace MaiChartSafer
                 return false;
             }
             this._hasJudged = true;
+            this._judgeDeltaTime = deltaTime;
             return true;
         }
     }
