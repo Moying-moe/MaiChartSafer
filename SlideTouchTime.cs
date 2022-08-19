@@ -16,7 +16,7 @@ namespace MaiChartSafer
     /// </summary>
     class SlideTouchTime : Singleton<SlideTouchTime>
     {
-        private Dictionary<SlideOrigin,List<SlideOperation>> _slideTouchTime = new Dictionary<SlideOrigin, List<SlideOperation>>();
+        private readonly Dictionary<SlideOrigin,List<SlideOperation>> _slideTouchTime = new Dictionary<SlideOrigin, List<SlideOperation>>();
 
         public SlideTouchTime()
         {
@@ -26,9 +26,10 @@ namespace MaiChartSafer
         public List<SlideOperation> GetOperationList(SlideData slide)
         {
             SlideOrigin sOrigin = slide.GetOrigin();
-            List<SlideOperation> originOperation = _slideTouchTime[sOrigin];
-            for (int i = 0; i < originOperation.Count; i++)
+            List<SlideOperation> originOperation = new List<SlideOperation>();
+            for (int i = 0; i < _slideTouchTime[sOrigin].Count; i++)
             {
+                originOperation.Add(_slideTouchTime[sOrigin][i].Clone());
                 originOperation[i].Rotate((short)(slide.StartButton - 1));
             }
             return originOperation;
@@ -92,6 +93,18 @@ namespace MaiChartSafer
             area = TouchAreaEnum.FromString(areaStr);
             method = AreaMethodEnum.FromString(methodStr);
             this.time = time;
+        }
+
+        public SlideOperation(TouchArea area, AreaMethod method, float time)
+        {
+            this.area = area;
+            this.method = method;
+            this.time = time;
+        }
+
+        public SlideOperation Clone()
+        {
+            return new SlideOperation(area, method, time);
         }
 
         /// <summary>

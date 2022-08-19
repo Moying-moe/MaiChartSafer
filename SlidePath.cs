@@ -27,9 +27,10 @@ namespace MaiChartSafer
         public List<TouchAreaGroup> GetPath(SlideData slide)
         {
             SlideOrigin sOrigin = slide.GetOrigin();
-            List<TouchAreaGroup> originArea = _slidePath[sOrigin];
-            for (int i = 0; i < originArea.Count; i++)
+            List<TouchAreaGroup> originArea = new List<TouchAreaGroup>();
+            for (int i = 0; i < _slidePath[sOrigin].Count; i++)
             {
+                originArea.Add(_slidePath[sOrigin][i].Clone());
                 originArea[i].Rotate((short)(slide.StartButton - 1));
             }
             return originArea;

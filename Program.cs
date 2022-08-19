@@ -11,7 +11,11 @@ namespace MaiChartSafer
         static void Main(string[] args)
         {
             Singleton<Simulator>.Instance.Init();
-            Singleton<Simulator>.Instance.LoadChartFromMajdata(@"D:\maimaifanmade\新谱\ARTEMIS\majdata.json");
+            Singleton<Simulator>.Instance.LoadChartFromMajdata(@"D:\maimaifanmade\测试\majdata.json");
+
+            Singleton<Simulator>.Instance.Simulate();
+
+            Console.WriteLine(Singleton<Simulator>.Instance.GetSimulateResult(ResultLevel.Critical));
 
             Console.WriteLine("Wait Any Key to Exit.");
             Console.ReadKey();

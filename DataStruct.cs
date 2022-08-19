@@ -1,8 +1,46 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace MaiChartSafer
 {
+    static class Tools
+    {
+        public static string GetNoteInfo(JObject noteGroup, JObject note)
+        {
+            int codeLine = noteGroup.Value<int>("rawTextPositionY");
+            int codeColumn = noteGroup.Value<int>("rawTextPositionX");
+            string groupContent = noteGroup.Value<string>("notesContent");
+            string noteContent = note.Value<string>("noteContent");
+            if (groupContent != noteContent)
+            {
+                noteContent = string.Concat(
+                    "`", noteContent, "` in `",
+                    groupContent, "`"
+                    );
+            }
+            else
+            {
+                noteContent = string.Concat("`", noteContent, "`");
+            }
+
+            return string.Concat(
+                Tools.TimeFormat(noteGroup.Value<float>("time")), " ",
+                noteContent, " ",
+                string.Format("({0}L,{1}c)", codeLine, codeColumn));
+        }
+
+        public static string TimeFormat(float time)
+        {
+            int minute = (int)(time / 60);
+            float second = time - minute * 60;
+            return string.Format("{0:00}:{1:00.00}", minute, second);
+        }
+
+        public static void BreakPoint() { }
+    }
+
     /// <summary>
     /// 判定区枚举类型
     /// </summary>
@@ -132,6 +170,11 @@ namespace MaiChartSafer
             {
                 _touchAreas.Add(each);
             }
+        }
+
+        public TouchAreaGroup Clone()
+        {
+            return new TouchAreaGroup(_touchAreas.ToArray());
         }
 
         internal List<TouchArea> TouchAreas { get => _touchAreas;}

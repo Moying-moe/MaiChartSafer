@@ -36,7 +36,7 @@ namespace MaiChartSafer
         /// 为本判定区添加一个激活源
         /// </summary>
         /// <returns>如果本次激活导致上沿触发则返回true</returns>
-        public bool activate()
+        public bool Activate()
         {
             _activeSignal++;
             return _activeSignal == 1;
@@ -46,7 +46,7 @@ namespace MaiChartSafer
         /// 为本判定区去除一个激活源
         /// </summary>
         /// <returns>如果本次去激活导致下沿触发则返回true</returns>
-        public bool deactivate()
+        public bool Deactivate()
         {
             if (IsOff())
             {

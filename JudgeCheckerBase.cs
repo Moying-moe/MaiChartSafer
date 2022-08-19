@@ -12,10 +12,13 @@ namespace MaiChartSafer
         protected bool _hasJudged;
         protected JudgeResult _judgeResult;
 
-        public JudgeCheckerBase()
+        protected string _noteInfo;
+
+        public JudgeCheckerBase(string noteInfo)
         {
             _hasJudged = false;
             _judgeResult = JudgeResult.None;
+            _noteInfo = noteInfo;
         }
 
         /// <summary>
@@ -26,6 +29,8 @@ namespace MaiChartSafer
         /// note的判定结果，为JudgeResult.None表示未判定
         /// </summary>
         internal JudgeResult JudgeResult { get => _judgeResult; }
+        public float JudgeTime { get => _judgeTime; }
+        public string NoteInfo { get => _noteInfo; }
 
         /// <summary>
         /// 是否过早需要忽略 即note是否还没进入判定区
@@ -55,7 +60,7 @@ namespace MaiChartSafer
     /// </summary>
     class TapJudgeChecker : JudgeCheckerBase
     {
-        public TapJudgeChecker(float judgeTime) : base()
+        public TapJudgeChecker(string noteInfo, float judgeTime) : base(noteInfo)
         {
             _judgeTime = judgeTime;
         }
@@ -72,6 +77,8 @@ namespace MaiChartSafer
 
         public override bool Judge(float curTime)
         {
+            float deltaTime = curTime - _judgeTime;
+
             if (IsNoteEarlyIgnored(curTime) || HasJudged)
             {
                 return false;
@@ -81,32 +88,32 @@ namespace MaiChartSafer
             {
                 this._judgeResult = JudgeResult.Miss;
             }
-            else if (curTime >= TapJudgeTiming.FastGoodStart && curTime < TapJudgeTiming.FastGoodEnd)
+            else if (deltaTime >= TapJudgeTiming.FastGoodStart && deltaTime < TapJudgeTiming.FastGoodEnd)
             {
                 this._judgeResult = JudgeResult.FastGood;
             }
-            else if (curTime < TapJudgeTiming.FastGreatEnd)
+            else if (deltaTime < TapJudgeTiming.FastGreatEnd)
             {
-                // 等价于 else if (curTime >= TapJudgeTiming.FastGreatStart && curTime < TapJudgeTiming.FastGreatEnd) 下同
+                // 等价于 else if (deltaTime >= TapJudgeTiming.FastGreatStart && deltaTime < TapJudgeTiming.FastGreatEnd) 下同
                 this._judgeResult = JudgeResult.FastGreat;
             }
-            else if (curTime < TapJudgeTiming.FastPerfectEnd)
+            else if (deltaTime < TapJudgeTiming.FastPerfectEnd)
             {
                 this._judgeResult = JudgeResult.FastPerfect;
             }
-            else if (curTime < TapJudgeTiming.CriticalEnd)
+            else if (deltaTime < TapJudgeTiming.CriticalEnd)
             {
                 this._judgeResult = JudgeResult.Critical;
             }
-            else if (curTime < TapJudgeTiming.LatePerfectEnd)
+            else if (deltaTime < TapJudgeTiming.LatePerfectEnd)
             {
                 this._judgeResult = JudgeResult.LatePerfect;
             }
-            else if (curTime < TapJudgeTiming.LateGreatEnd)
+            else if (deltaTime < TapJudgeTiming.LateGreatEnd)
             {
                 this._judgeResult = JudgeResult.LateGreat;
             }
-            else if (curTime < TapJudgeTiming.LateGoodEnd)
+            else if (deltaTime < TapJudgeTiming.LateGoodEnd)
             {
                 this._judgeResult = JudgeResult.LateGood;
             }
@@ -134,7 +141,7 @@ namespace MaiChartSafer
 
         public bool HasHeadJudged { get => _hasHeadJudged; set => _hasHeadJudged = value; }
 
-        public HoldJudgeChecker(float judgeTime, float holdTime) : base()
+        public HoldJudgeChecker(string noteInfo, float judgeTime, float holdTime) : base(noteInfo)
         {
             _judgeTime = judgeTime;
             _holdTime = holdTime;
@@ -166,8 +173,10 @@ namespace MaiChartSafer
         /// </summary>
         /// <param name="curTime">当前模拟时间</param>
         /// <returns>是否进行了判定</returns>
-        public bool JudgeHead(float curTime)
+        public override bool Judge(float curTime)
         {
+            float deltaTime = curTime - _judgeTime;
+
             if (IsNoteEarlyIgnored(curTime) || HasJudged)
             {
                 return false;
@@ -177,31 +186,31 @@ namespace MaiChartSafer
             {
                 this._headJudgeResult = JudgeResult.Miss;
             }
-            else if (curTime >= TapJudgeTiming.FastGoodStart && curTime < TapJudgeTiming.FastGoodEnd)
+            else if (deltaTime >= TapJudgeTiming.FastGoodStart && deltaTime < TapJudgeTiming.FastGoodEnd)
             {
                 this._headJudgeResult = JudgeResult.FastGood;
             }
-            else if (curTime < TapJudgeTiming.FastGreatEnd)
+            else if (deltaTime < TapJudgeTiming.FastGreatEnd)
             {
                 this._headJudgeResult = JudgeResult.FastGreat;
             }
-            else if (curTime < TapJudgeTiming.FastPerfectEnd)
+            else if (deltaTime < TapJudgeTiming.FastPerfectEnd)
             {
                 this._headJudgeResult = JudgeResult.FastPerfect;
             }
-            else if (curTime < TapJudgeTiming.CriticalEnd)
+            else if (deltaTime < TapJudgeTiming.CriticalEnd)
             {
                 this._headJudgeResult = JudgeResult.Critical;
             }
-            else if (curTime < TapJudgeTiming.LatePerfectEnd)
+            else if (deltaTime < TapJudgeTiming.LatePerfectEnd)
             {
                 this._headJudgeResult = JudgeResult.LatePerfect;
             }
-            else if (curTime < TapJudgeTiming.LateGreatEnd)
+            else if (deltaTime < TapJudgeTiming.LateGreatEnd)
             {
                 this._headJudgeResult = JudgeResult.LateGreat;
             }
-            else if (curTime < TapJudgeTiming.LateGoodEnd)
+            else if (deltaTime < TapJudgeTiming.LateGoodEnd)
             {
                 this._headJudgeResult = JudgeResult.LateGood;
             }
@@ -218,49 +227,51 @@ namespace MaiChartSafer
         /// Hold尾部(Release)判定
         /// </summary>
         /// <param name="curTime">当前模拟时间</param>
-        public override bool Judge(float curTime)
+        public bool JudgeTail(float curTime)
         {
+            float deltaTime = curTime - _judgeTime;
+
             // 如果还未进入范围 已经判定过 或者还未进行头部判定 则不进行Release判定
             if (IsNoteEarlyIgnored(curTime) || HasJudged || !HasHeadJudged)
             {
                 return false;
             }
 
-            if (curTime < HoldJudgeTiming.JudgeStart)
+            if (deltaTime < HoldJudgeTiming.JudgeStart)
             {
                 // 非常及早的就松开 判定为FastGood
                 // 不过理论上这条逻辑应该不会被调用 因为模拟器总是尝试以正确的方式操作 不会提前松开
                 this._judgeResult = JudgeResult.FastGood;
             }
-            else if (curTime >= HoldJudgeTiming.FastGoodStart && curTime < HoldJudgeTiming.FastGoodEnd)
+            else if (deltaTime >= HoldJudgeTiming.FastGoodStart && deltaTime < HoldJudgeTiming.FastGoodEnd)
             {
                 this._judgeResult = JudgeResult.FastGood;
             }
-            else if (curTime < HoldJudgeTiming.FastGreatEnd)
+            else if (deltaTime < HoldJudgeTiming.FastGreatEnd)
             {
                 this._judgeResult = JudgeResult.FastGreat;
             }
-            else if (curTime < HoldJudgeTiming.FastPerfectEnd)
+            else if (deltaTime < HoldJudgeTiming.FastPerfectEnd)
             {
                 this._judgeResult = JudgeResult.FastPerfect;
             }
-            else if (curTime < HoldJudgeTiming.CriticalEnd)
+            else if (deltaTime < HoldJudgeTiming.CriticalEnd)
             {
                 this._judgeResult = JudgeResult.Critical;
             }
-            else if (curTime < HoldJudgeTiming.LatePerfectEnd)
+            else if (deltaTime < HoldJudgeTiming.LatePerfectEnd)
             {
                 this._judgeResult = JudgeResult.LatePerfect;
             }
-            else if (curTime < HoldJudgeTiming.LateGreatEnd)
+            else if (deltaTime < HoldJudgeTiming.LateGreatEnd)
             {
                 this._judgeResult = JudgeResult.LateGreat;
             }
-            else if (curTime < HoldJudgeTiming.LateGoodEnd)
+            else if (deltaTime < HoldJudgeTiming.LateGoodEnd)
             {
                 this._judgeResult = JudgeResult.LateGood;
             }
-            else if (curTime >= HoldJudgeTiming.MissStart)
+            else if (deltaTime >= HoldJudgeTiming.MissStart)
             {
                 // 拖判
                 this._judgeResult = JudgeResult.LateGood;
@@ -283,7 +294,7 @@ namespace MaiChartSafer
     {
         private float _startJudgeTime;
 
-        public SlideJudgeChecker(SlideData slide) : base()
+        public SlideJudgeChecker(string noteInfo, SlideData slide) : base(noteInfo)
         {
             _judgeTime = slide.LastAreaTime;
             _startJudgeTime = slide.StartTime;
@@ -301,6 +312,8 @@ namespace MaiChartSafer
 
         public override bool Judge(float curTime)
         {
+            float deltaTime = curTime - _judgeTime;
+
             if (IsNoteEarlyIgnored(curTime) || HasJudged)
             {
                 return false;
@@ -310,36 +323,36 @@ namespace MaiChartSafer
             {
                 this._judgeResult = JudgeResult.Miss;
             }
-            else if (curTime < SlideJudgeTiming.JudgeStart)
+            else if (deltaTime < SlideJudgeTiming.JudgeStart)
             {
                 // 过早滑完 判FastGood
                 this._judgeResult = JudgeResult.FastGood;
             }
-            else if (curTime >= SlideJudgeTiming.FastGoodStart && curTime < SlideJudgeTiming.FastGoodEnd)
+            else if (deltaTime >= SlideJudgeTiming.FastGoodStart && deltaTime < SlideJudgeTiming.FastGoodEnd)
             {
                 this._judgeResult = JudgeResult.FastGood;
             }
-            else if (curTime < SlideJudgeTiming.FastGreatEnd)
+            else if (deltaTime < SlideJudgeTiming.FastGreatEnd)
             {
                 this._judgeResult = JudgeResult.FastGreat;
             }
-            else if (curTime < SlideJudgeTiming.FastPerfectEnd)
+            else if (deltaTime < SlideJudgeTiming.FastPerfectEnd)
             {
                 this._judgeResult = JudgeResult.FastPerfect;
             }
-            else if (curTime < SlideJudgeTiming.CriticalEnd)
+            else if (deltaTime < SlideJudgeTiming.CriticalEnd)
             {
                 this._judgeResult = JudgeResult.Critical;
             }
-            else if (curTime < SlideJudgeTiming.LatePerfectEnd)
+            else if (deltaTime < SlideJudgeTiming.LatePerfectEnd)
             {
                 this._judgeResult = JudgeResult.LatePerfect;
             }
-            else if (curTime < SlideJudgeTiming.LateGreatEnd)
+            else if (deltaTime < SlideJudgeTiming.LateGreatEnd)
             {
                 this._judgeResult = JudgeResult.LateGreat;
             }
-            else if (curTime < SlideJudgeTiming.LateGoodEnd)
+            else if (deltaTime < SlideJudgeTiming.LateGoodEnd)
             {
                 this._judgeResult = JudgeResult.LateGood;
             }
