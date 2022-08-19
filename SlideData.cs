@@ -97,6 +97,21 @@ namespace MaiChartSafer
             _lastAreaTime = _launchTime + _slideTime * Singleton<SlideTouchTime>.Instance.GetLastAreaInTime(this);
         }
 
+        /// <summary>
+        /// 从完整的slide文本 如`1b-5[8:1]`中提取slideContent文本 如`1-5`
+        /// </summary>
+        /// <param name="slideText">完整的slide文本</param>
+        /// <returns>slideContent</returns>
+        public static string SlideContentFromFullSlideText(string slideText)
+        {
+            if (slideText[1] == 'b' || slideText[1] == 'x')
+            {
+                // break或ex标记
+                slideText = slideText.Remove(1, 1);
+            }
+            return slideText.Substring(0, slideText.IndexOf('['));
+        }
+
         public short StartButton { get => _startButton;}
         public short EndButton { get => _endButton;}
         internal SlideType SlideType { get => _slideType;}

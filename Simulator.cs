@@ -1,5 +1,8 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,10 +18,25 @@ namespace MaiChartSafer
         private Dictionary<short, List<JudgeCheckerBase>> _judgeCheckers = new Dictionary<short, List<JudgeCheckerBase>>();
         private List<SlideTask> _slideTasks = new List<SlideTask>();
         private Dictionary<float, List<TouchOperation>> _operations = new Dictionary<float, List<TouchOperation>>();
+        private bool _hasLoaded;
 
         public Simulator()
         {
-            for (TouchArea area = TouchArea.A1; area<TouchArea.End; area++)
+            Init();
+        }
+
+        /// <summary>
+        /// 将Simualtor重置为初始状态
+        /// </summary>
+        public void Init()
+        {
+            _hasLoaded = false;
+            _touchAreaMonitors.Clear();
+            _judgeCheckers.Clear();
+            _slideTasks.Clear();
+            _operations.Clear();
+
+            for (TouchArea area = TouchArea.A1; area < TouchArea.End; area++)
             {
                 _touchAreaMonitors.Add(area, new TouchAreaMonitor(area));
             }
@@ -28,6 +46,64 @@ namespace MaiChartSafer
             {
                 _judgeCheckers.Add(i, new List<JudgeCheckerBase>());
             }
+        }
+
+        /// <summary>
+        /// 从majdata.json中读取谱面
+        /// </summary>
+        /// <param name="path"></param>
+        public void LoadChartFromMajdata(string path)
+        {
+            if (HasLoaded)
+            {
+                Init();
+            }
+
+            string text = File.ReadAllText(path, Encoding.UTF8);
+            JObject data = JsonConvert.DeserializeObject<JObject>(text);
+
+            JArray timingList = data.Value<JArray>("timingList");
+
+            foreach (JObject noteGroup in timingList)
+            {
+                float groupTime = noteGroup.Value<float>("time");
+                foreach (JObject note in noteGroup.Value<JArray>("noteList"))
+                {
+                    switch(note.Value<int>("noteType"))
+                    {
+                        case 0:
+                            // Tap
+                            AddTap(note.Value<short>("startPosition"), groupTime);
+                            break;
+                        case 1:
+                            // Slide
+                            SlideData slide = new SlideData(
+                                SlideData.SlideContentFromFullSlideText(note.Value<string>("noteContent")),
+                                groupTime, note.Value<float>("slideStartTime"), note.Value<float>("slideTime"));
+                            AddSlide(slide);
+                            break;
+                        case 2:
+                            // Hold
+                            AddHold(note.Value<short>("startPosition"), groupTime, note.Value<float>("holdTime"));
+                            break;
+                        default:
+                            // Invalid
+                            break;
+                    }
+                }
+            }
+
+            _hasLoaded = true;
+        }
+
+        /// <summary>
+        /// [未实现]
+        /// 从maidata.txt中读取谱面
+        /// </summary>
+        /// <param name="path"></param>
+        public void LoadChartFromSimai(string path)
+        {
+            // TODO: Load From Maidata.txt
         }
 
         public void AddOperation(float _time, TouchOperation _op)
@@ -76,6 +152,7 @@ namespace MaiChartSafer
 
         internal Dictionary<TouchArea, TouchAreaMonitor> TouchAreaMonitors { get => _touchAreaMonitors; }
         internal Dictionary<short, List<JudgeCheckerBase>> JudgeCheckers { get => _judgeCheckers; }
+        public bool HasLoaded { get => _hasLoaded; }
     }
 
     class TouchOperation
