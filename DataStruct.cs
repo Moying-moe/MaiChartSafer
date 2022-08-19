@@ -127,4 +127,50 @@ namespace MaiChartSafer
             }
         }
     }
+    /// <summary>
+    /// OR判定区实现
+    /// </summary>
+    class TouchAreaGroup
+    {
+        private List<TouchArea> _touchAreas = new List<TouchArea>();
+
+        public override string ToString()
+        {
+            return string.Join("/", _touchAreas);
+        }
+
+        public TouchAreaGroup(params TouchArea[] areas)
+        {
+            foreach (TouchArea each in areas)
+            {
+                _touchAreas.Add(each);
+            }
+        }
+
+        internal List<TouchArea> TouchAreas { get => _touchAreas;}
+
+        public bool IsOr()
+        {
+            return _touchAreas.Count > 1;
+        }
+
+        public void Rotate(short delta)
+        {
+            for (int i = 0; i < _touchAreas.Count; i++)
+            {
+                _touchAreas[i] = _touchAreas[i].Rotate(delta);
+            }
+        }
+
+        public static TouchAreaGroup FromString(string _str)
+        {
+            string[] areaStrs = _str.Split('/');
+            TouchArea[] areas = new TouchArea[areaStrs.Length];
+            for (int i = 0; i < areaStrs.Length; i++) 
+            {
+                areas[i] = TouchAreaEnum.FromString(areaStrs[i]);
+            }
+            return new TouchAreaGroup(areas);
+        }
+    }
 }

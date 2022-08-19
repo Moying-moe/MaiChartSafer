@@ -10,11 +10,11 @@ namespace MaiChartSafer
     {
         static void Main(string[] args)
         {
-            SlideData slide = new SlideData("4-8");
-            List<SlideOperation> slideOperations = Singleton<SlideTouchTime>.Instance.GetOperationList(slide);
-            foreach (SlideOperation operation in slideOperations)
+            SlideData slide = new SlideData("4V68", 0, 0.5f, 1);
+            List<TouchAreaGroup> res = Singleton<SlidePath>.Instance.GetPath(slide);
+            foreach (TouchAreaGroup each in res)
             {
-                Console.WriteLine(operation.ToString());
+                Console.WriteLine(each.ToString());
             }
 
             Console.ReadKey();

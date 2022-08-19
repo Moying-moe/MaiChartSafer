@@ -17,20 +17,20 @@ namespace MaiChartSafer
     /// </summary>
     class SlidePath
     {
-        private Dictionary<SlideOrigin, List<TouchArea>> _slidePath = new Dictionary<SlideOrigin, List<TouchArea>>();
+        private Dictionary<SlideOrigin, List<TouchAreaGroup>> _slidePath = new Dictionary<SlideOrigin, List<TouchAreaGroup>>();
 
         public SlidePath()
         {
             LoadFromFile("./SlidePath.json");
         }
 
-        public List<TouchArea> GetPath(SlideData slide)
+        public List<TouchAreaGroup> GetPath(SlideData slide)
         {
             SlideOrigin sOrigin = slide.GetOrigin();
-            List<TouchArea> originArea = _slidePath[sOrigin];
+            List<TouchAreaGroup> originArea = _slidePath[sOrigin];
             for (int i = 0; i < originArea.Count; i++)
             {
-                originArea[i] = originArea[i].Rotate((short)(slide.StartButton - 1));
+                originArea[i].Rotate((short)(slide.StartButton - 1));
             }
             return originArea;
         }
@@ -48,10 +48,10 @@ namespace MaiChartSafer
             foreach (JProperty item in slideContents)
             {
                 SlideOrigin slideOrigin = new SlideOrigin(item.Name);
-                List<TouchArea> touchAreaList = new List<TouchArea>();
+                List<TouchAreaGroup> touchAreaList = new List<TouchAreaGroup>();
                 foreach (JToken each in item.Value)
                 {
-                    touchAreaList.Add(TouchAreaEnum.FromString(each.ToString()));
+                    touchAreaList.Add(TouchAreaGroup.FromString(each.ToString()));
                 }
 
                 _slidePath.Add(slideOrigin, touchAreaList);
