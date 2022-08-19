@@ -94,16 +94,7 @@ namespace MaiChartSafer
             _launchTime = launchTime;
             _slideTime = slideTime;
 
-            List<SlideOperation> operations = Singleton<SlideTouchTime>.Instance.GetOperationList(this);
-            TouchArea lastArea = operations[operations.Count - 1].area;
-            for (int i = operations.Count - 2; i > -1; i--)
-            {
-                if (operations[i].area == lastArea && operations[i].method == AreaMethod.In)
-                {
-                    _lastAreaTime = _launchTime + _slideTime * operations[i].time;
-                    break;
-                }
-            }
+            _lastAreaTime = _launchTime + _slideTime * Singleton<SlideTouchTime>.Instance.GetLastAreaInTime(this);
         }
 
         public short StartButton { get => _startButton;}

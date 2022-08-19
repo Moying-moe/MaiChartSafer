@@ -35,6 +35,25 @@ namespace MaiChartSafer
         }
 
         /// <summary>
+        /// 获得slide进入最后一个区的时间比例
+        /// </summary>
+        /// <param name="slide"></param>
+        /// <returns></returns>
+        public float GetLastAreaInTime(SlideData slide)
+        {
+            List<SlideOperation> operations = GetOperationList(slide);
+            TouchArea lastArea = operations[operations.Count - 1].area;
+            for (int i = operations.Count - 2; i > -1; i--)
+            {
+                if (operations[i].area == lastArea && operations[i].method == AreaMethod.In)
+                {
+                    return operations[i].time;
+                }
+            }
+            return 1f;
+        }
+
+        /// <summary>
         /// 从文件中载入SlideTouchTime数据
         /// </summary>
         /// <param name="path">SlideTouchTime.json的路径</param>
