@@ -1,4 +1,6 @@
-﻿namespace MaiChartSafer
+﻿using System.Collections.Generic;
+
+namespace MaiChartSafer
 {
     class SlideOrigin
     {
@@ -65,8 +67,13 @@
         private SlideType _slideType;
         private short _startButton;
         private short _endButton;
+        
+        private float _startTime;
+        private float _launchTime;
+        private float _slideTime;
+        private float _lastAreaTime;
 
-        public SlideData(string slideContent)
+        public SlideData(string slideContent, float startTime, float launchTime, float slideTime)
         {
             _slideType = SlideTypeEnum.SlideTypeConvert(slideContent);
             _startButton = (short)(slideContent[0] - '0');
@@ -83,11 +90,41 @@
                     _endButton = (short)(slideContent[2] - '0');
                     break;
             }
+            _startTime = startTime;
+            _launchTime = launchTime;
+            _slideTime = slideTime;
+
+            List<SlideOperation> operations = Singleton<SlideTouchTime>.Instance.GetOperationList(this);
+            TouchArea lastArea = operations[operations.Count - 1].area;
+            for (int i = operations.Count - 2; i > -1; i--)
+            {
+                if (operations[i].area == lastArea && operations[i].method == AreaMethod.In)
+                {
+                    _lastAreaTime = _launchTime + _slideTime * operations[i].time;
+                    break;
+                }
+            }
         }
 
         public short StartButton { get => _startButton;}
         public short EndButton { get => _endButton;}
         internal SlideType SlideType { get => _slideType;}
+        /// <summary>
+        /// slide出现时间 即slide-tap的正解时间
+        /// </summary>
+        public float StartTime { get => _startTime; }
+        /// <summary>
+        /// slide出发时间 即slide-tap后一拍
+        /// </summary>
+        public float LaunchTime { get => _launchTime; }
+        /// <summary>
+        /// slide持续时间
+        /// </summary>
+        public float SlideTime { get => _slideTime; }
+        /// <summary>
+        /// slide进入最后一个判定区的时间
+        /// </summary>
+        public float LastAreaTime { get => _lastAreaTime; set => _lastAreaTime = value; }
 
         /// <summary>
         /// 获得本Slide对应的原始Slide（即起点为1的Slide）
